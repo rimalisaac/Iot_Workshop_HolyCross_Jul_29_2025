@@ -1,612 +1,496 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IoT Sensor Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-  <style>
-    :root {
-      --primary: #3498db;
-      --secondary: #e74c3c;
-      --success: #2ecc71;
-      --purple: #9b59b6;
-      --light: #f8f9fa;
-      --dark: #343a40;
-      --shadow: 0 4px 16px rgba(0,0,0,0.08);
-    }
-    body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      margin: 0;
-      background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
-      color: var(--dark);
-      min-height: 100vh;
-      padding: 20px;
-    }
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    header {
-      text-align: center;
-      padding: 20px 0;
-      margin-bottom: 20px;
-    }
-    h1 {
-      color: var(--primary);
-      font-size: 2.2rem;
-      margin-bottom: 10px;
-    }
-    h2 {
-      color: var(--dark);
-      font-size: 1.2rem;
-      font-weight: 400;
-      margin: 0 0 40px 0;
-    }
-    .status-indicator {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(46, 204, 113, 0.1);
-      padding: 8px 16px;
-      border-radius: 20px;
-      margin-top: 10px;
-    }
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--success);
-      animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 25px;
-      margin-bottom: 30px;
-    }
-    .chart-container {
-      background: white;
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: var(--shadow);
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .chart-container:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.12);
-    }
-    .chart-title {
-      font-size: 1.3rem;
-      color: var(--dark);
-      margin-top: 0;
-      margin-bottom: 15px;
-      text-align: center;
-    }
-    canvas {
-      width: 100% !important;
-      height: 300px !important;
-    }
-    .info-box {
-      background: white;
-      border-radius: 16px;
-      padding: 20px;
-      margin-top: 20px;
-      box-shadow: var(--shadow);
-      font-size: 1rem;
-      color: #555;
-    }
-    .info-box h3 {
-      margin-top: 0;
-      color: var(--primary);
-      font-size: 1.3rem;
-    }
-    .current-data {
-      background: white;
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: var(--shadow);
-      margin-bottom: 30px;
-      overflow-x: auto;
-    }
-    .current-data h3 {
-      color: var(--primary);
-      margin-top: 0;
-      font-size: 1.3rem;
-    }
-    .data-table-container {
-      background: white;
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: var(--shadow);
-      margin-bottom: 30px;
-    }
-    .data-table-container h3 {
-      color: var(--primary);
-      margin-top: 0;
-      font-size: 1.3rem;
-      text-align: center;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    th, td {
-      padding: 12px;
-      text-align: left;
-      border-bottom: 1px solid #eee;
-    }
-    th {
-      background: #f9f9f9;
-      font-weight: 600;
-      position: sticky;
-      top: 0;
-    }
-    .table-scroll {
-      max-height: 400px;
-      overflow-y: auto;
-    }
-    .refresh-btn {
-      background: linear-gradient(135deg, var(--primary), var(--purple));
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 25px;
-      cursor: pointer;
-      font-size: 1rem;
-      font-weight: 600;
-      transition: transform 0.2s ease;
-      margin: 20px auto;
-      display: block;
-    }
-    .refresh-btn:hover {
-      transform: scale(1.05);
-    }
-    .refresh-btn:active {
-      transform: scale(0.95);
-    }
-    .error {
-      background: #ffeaea;
-      color: var(--secondary);
-      padding: 20px;
-      border-radius: 16px;
-      margin: 20px 0;
-      text-align: center;
-    }
-    .loading {
-      text-align: center;
-      padding: 40px;
-      color: #666;
-    }
-    @media (max-width: 768px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
-      h1 {
-        font-size: 1.8rem;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IoT Data Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .current-data {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .metric {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 12px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-top: 20px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .data-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .data-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+
+        .status.online {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.offline {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .status.online .status-dot {
+            background-color: #28a745;
+        }
+
+        .status.offline .status-dot {
+            background-color: #dc3545;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #f5c6cb;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .metric-value {
+                font-size: 2rem;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1><i class="fas fa-thermometer-half"></i> IoT Sensor Dashboard</h1>
-      <h2>Real-time Temperature & Humidity Monitoring</h2>
-      <div class="status-indicator">
-        <div class="status-dot"></div>
-        <span>Live Data</span>
-      </div>
-    </header>
+    <div class="container">
+        <div class="header">
+            <h1>IoT Data Dashboard</h1>
+            <p>Real-time Temperature and Humidity Monitoring</p>
+        </div>
 
-    <div id="loading" class="loading">
-      <h3><i class="fas fa-spinner fa-spin"></i> Loading sensor data...</h3>
+        <div id="status" class="status offline">
+            <div class="status-dot"></div>
+            <span>Connecting...</span>
+        </div>
+
+        <div id="error-message" class="error" style="display: none;"></div>
+
+        <div class="dashboard">
+            <div class="card">
+                <h2>Current Readings</h2>
+                <div class="current-data">
+                    <div class="metric">
+                        <div class="metric-value" id="current-temp">--</div>
+                        <div class="metric-label">Temperature (°C)</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="current-humidity">--</div>
+                        <div class="metric-label">Humidity (%)</div>
+                    </div>
+                </div>
+                <p style="margin-top: 15px; color: #666; font-size: 0.9rem;">
+                    Last updated: <span id="last-updated">--</span>
+                </p>
+            </div>
+
+            <div class="card">
+                <h2>Temperature Trend (Last 30 Readings)</h2>
+                <div class="chart-container">
+                    <canvas id="tempChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Humidity Trend (Last 30 Readings)</h2>
+                <div class="chart-container">
+                    <canvas id="humidityChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Recent Data (Last 30 Readings)</h2>
+            <div style="overflow-x: auto;">
+                <table class="data-table" id="data-table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Temperature (°C)</th>
+                            <th>Humidity (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <tr>
+                            <td colspan="3" class="loading">Loading data...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
-    <div id="error" class="error" style="display: none;">
-      <h3><i class="fas fa-exclamation-triangle"></i> Error loading data</h3>
-      <p id="error-message"></p>
-    </div>
-
-    <div id="dashboard" style="display: none;">
-      <div class="current-data">
-        <h3><i class="fas fa-tachometer-alt"></i> Current Sensor Data</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Sensor</th>
-              <th>Latest Value</th>
-              <th>Last Updated</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><i class="fas fa-thermometer-half" style="color: var(--secondary);"></i> Temperature</td>
-              <td id="currentTemp">—</td>
-              <td id="tempTime">—</td>
-            </tr>
-            <tr>
-              <td><i class="fas fa-tint" style="color: var(--primary);"></i> Humidity</td>
-              <td id="currentHumidity">—</td>
-              <td id="humidityTime">—</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="grid">
-        <div class="chart-container">
-          <h3 class="chart-title"><i class="fas fa-thermometer-half"></i> Temperature (°C)</h3>
-          <canvas id="tempChart"></canvas>
-        </div>
-        <div class="chart-container">
-          <h3 class="chart-title"><i class="fas fa-tint"></i> Humidity (%)</h3>
-          <canvas id="humidityChart"></canvas>
-        </div>
-      </div>
-
-      <div class="chart-container" style="margin-bottom: 30px;">
-        <h3 class="chart-title"><i class="fas fa-chart-line"></i> Combined Temperature & Humidity Trends (Last 30 Readings)</h3>
-        <canvas id="combinedChart"></canvas>
-      </div>
-
-      <div class="data-table-container">
-        <h3><i class="fas fa-table"></i> Recent Sensor Readings (Last 30 Values)</h3>
-        <div class="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th>Timestamp</th>
-                <th>Temperature (°C)</th>
-                <th>Humidity (%)</th>
-              </tr>
-            </thead>
-            <tbody id="data-table-body">
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <button class="refresh-btn" onclick="loadData()">
-        <i class="fas fa-sync-alt"></i> Refresh Data
-      </button>
-
-      <div class="info-box">
-        <h3><i class="fas fa-info-circle"></i> About this Dashboard</h3>
-        <p>
-          This dashboard displays real-time sensor readings from an IoT device, including temperature and humidity data. 
-          The data is automatically fetched from a Google Sheets CSV and updated every 30 seconds.
-        </p>
-        <p>
-          <strong>Features:</strong> Live data visualization, last 30 readings display, interactive charts with hover details, 
-          and automatic refresh functionality.
-        </p>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const csvUrl = "https://docs.google.com/spreadsheets/d/e/sdfsdgsdGSDgsdGd/pub?gid=0&single=true&output=csv";
-    let tempChart, humidityChart, combinedChart;
-
-    function parseCSV(csv) {
-      const lines = csv.trim().split(/\r?\n/);
-      const data = [];
-      
-      for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(',');
-        if (values.length >= 3 && values[1] && values[1].trim() !== '' && values[2] && values[2].trim() !== '') {
-          const temp = parseFloat(values[1].trim());
-          const hum = parseFloat(values[2].trim());
-          
-          if (!isNaN(temp) && !isNaN(hum)) {
-            data.push({
-              timestamp: values[0].trim(),
-              temperature: temp,
-              humidity: hum
-            });
-          }
-        }
-      }
-      
-      return data.reverse(); // Most recent first
-    }
-
-    function formatTimestamp(timestamp) {
-      try {
-        const parts = timestamp.split(' ');
-        const datePart = parts[0];
-        const timePart = parts[1];
-        
-        const [day, month, year] = datePart.split('/');
-        const date = new Date(year, month - 1, day);
-        const time = timePart;
-        
-        return `${date.toLocaleDateString()} ${time}`;
-      } catch (e) {
-        return timestamp;
-      }
-    }
-
-    function drawChart(canvasId, label, dataPoints, labels, borderColor, yAxisLabel) {
-      const ctx = document.getElementById(canvasId).getContext("2d");
-      
-      if (canvasId === 'tempChart' && tempChart) tempChart.destroy();
-      if (canvasId === 'humidityChart' && humidityChart) humidityChart.destroy();
-      
-      const chart = new Chart(ctx, {
-        type: "line",
-        data: {
-          labels: labels,
-          datasets: [{
-            label: label,
-            data: dataPoints,
-            borderColor: borderColor,
-            backgroundColor: borderColor + "20",
-            tension: 0.4,
-            fill: true,
-            pointRadius: 4,
-            pointBackgroundColor: borderColor,
-            pointBorderColor: '#fff',
-            pointBorderWidth: 2,
-            borderWidth: 3
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              mode: 'index',
-              intersect: false,
-              backgroundColor: 'rgba(0,0,0,0.8)',
-              titleColor: '#fff',
-              bodyColor: '#fff',
-              borderColor: borderColor,
-              borderWidth: 1,
-              cornerRadius: 8,
-              padding: 12,
-              caretSize: 8,
-              displayColors: false
+    <script>
+        class IoTDashboard {
+            constructor() {
+                this.csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSCgqjbTUVlCCusS/pub?gid=0&single=true&output=csv';
+                this.data = [];
+                this.tempChart = null;
+                this.humidityChart = null;
+                this.init();
             }
-          },
-          scales: {
-            x: {
-              display: true,
-              title: {
-                display: true,
-                text: 'Time',
-                font: { size: 12, weight: '600' }
-              },
-              ticks: { 
-                font: { size: 10 },
-                maxTicksLimit: 8
-              },
-              grid: { display: false }
-            },
-            y: {
-              display: true,
-              title: {
-                display: true,
-                text: yAxisLabel,
-                font: { size: 12, weight: '600' },
-                color: borderColor
-              },
-              ticks: { 
-                font: { size: 10 },
-                color: borderColor
-              },
-              grid: { color: 'rgba(0,0,0,0.05)' }
+
+            async init() {
+                await this.fetchData();
+                this.setupCharts();
+                this.updateDashboard();
+                
+                // Auto-refresh every 30 seconds
+                setInterval(() => {
+                    this.fetchData().then(() => {
+                        this.updateDashboard();
+                    });
+                }, 30000);
             }
-          }
-        }
-      });
-      
-      if (canvasId === 'tempChart') tempChart = chart;
-      if (canvasId === 'humidityChart') humidityChart = chart;
-      
-      return chart;
-    }
 
-    function drawCombinedChart(tempData, humData, labels) {
-      const ctx = document.getElementById('combinedChart').getContext('2d');
-      
-      if (combinedChart) combinedChart.destroy();
-      
-      combinedChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'Temperature (°C)',
-            data: tempData,
-            borderColor: '#e74c3c',
-            backgroundColor: 'rgba(231, 76, 60, 0.1)',
-            borderWidth: 3,
-            fill: true,
-            tension: 0.4,
-            pointBackgroundColor: '#e74c3c',
-            pointBorderColor: '#fff',
-            pointBorderWidth: 2,
-            pointRadius: 4,
-            yAxisID: 'y'
-          }, {
-            label: 'Humidity (%)',
-            data: humData,
-            borderColor: '#3498db',
-            backgroundColor: 'rgba(52, 152, 219, 0.1)',
-            borderWidth: 3,
-            fill: true,
-            tension: 0.4,
-            pointBackgroundColor: '#3498db',
-            pointBorderColor: '#fff',
-            pointBorderWidth: 2,
-            pointRadius: 4,
-            yAxisID: 'y1'
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'top',
-              labels: {
-                usePointStyle: true,
-                padding: 20,
-                font: { size: 12, weight: '600' }
-              }
-            },
-            tooltip: {
-              mode: 'index',
-              intersect: false,
-              backgroundColor: 'rgba(0,0,0,0.8)',
-              titleColor: '#fff',
-              bodyColor: '#fff',
-              cornerRadius: 8,
-              padding: 12
+            async fetchData() {
+                try {
+                    const response = await fetch(this.csvUrl);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const csvText = await response.text();
+                    this.parseCSV(csvText);
+                    this.updateStatus(true);
+                    this.hideError();
+                } catch (error) {
+                    console.error('Error fetching data:', error);
+                    this.updateStatus(false);
+                    this.showError('Failed to fetch data: ' + error.message);
+                }
             }
-          },
-          scales: {
-            x: {
-              display: true,
-              title: {
-                display: true,
-                text: 'Time',
-                font: { size: 12, weight: '600' }
-              },
-              ticks: { 
-                font: { size: 10 },
-                maxTicksLimit: 10
-              },
-              grid: { color: 'rgba(0, 0, 0, 0.1)' }
-            },
-            y: {
-              type: 'linear',
-              display: true,
-              position: 'left',
-              title: {
-                display: true,
-                text: 'Temperature (°C)',
-                color: '#e74c3c',
-                font: { size: 12, weight: '600' }
-              },
-              grid: { color: 'rgba(231, 76, 60, 0.1)' },
-              ticks: { color: '#e74c3c', font: { size: 10 } }
-            },
-            y1: {
-              type: 'linear',
-              display: true,
-              position: 'right',
-              title: {
-                display: true,
-                text: 'Humidity (%)',
-                color: '#3498db',
-                font: { size: 12, weight: '600' }
-              },
-              grid: { drawOnChartArea: false, color: 'rgba(52, 152, 219, 0.1)' },
-              ticks: { color: '#3498db', font: { size: 10 } }
+
+            parseCSV(csvText) {
+                const lines = csvText.trim().split('\n');
+                const headers = lines[0].split(',');
+                
+                this.data = [];
+                
+                for (let i = 1; i < lines.length; i++) {
+                    const values = lines[i].split(',');
+                    
+                    // Skip rows with missing timestamp
+                    if (!values[0] || values[0].trim() === '') continue;
+                    
+                    const row = {
+                        timestamp: values[0].trim(),
+                        temperature: values[1] && values[1].trim() !== '' ? parseFloat(values[1]) : null,
+                        humidity: values[2] && values[2].trim() !== '' ? parseFloat(values[2]) : null
+                    };
+                    
+                    this.data.push(row);
+                }
+                
+                // Sort by timestamp (most recent first)
+                this.data.sort((a, b) => new Date(this.parseTimestamp(b.timestamp)) - new Date(this.parseTimestamp(a.timestamp)));
             }
-          }
+
+            parseTimestamp(timestamp) {
+                // Convert "16/07/2025 16:42:59" to "2025-07-16T16:42:59"
+                const parts = timestamp.split(' ');
+                const dateParts = parts[0].split('/');
+                const timePart = parts[1];
+                return `${dateParts[2]}-${dateParts[1].padStart(2, '0')}-${dateParts[0].padStart(2, '0')}T${timePart}`;
+            }
+
+            getValidData(field, limit = 30) {
+                return this.data
+                    .filter(row => row[field] !== null)
+                    .slice(0, limit)
+                    .reverse(); // Reverse to show chronological order in charts
+            }
+
+            updateDashboard() {
+                this.updateCurrentReadings();
+                this.updateTable();
+                this.updateCharts();
+            }
+
+            updateCurrentReadings() {
+                // Find the most recent valid readings
+                const latestTemp = this.data.find(row => row.temperature !== null);
+                const latestHumidity = this.data.find(row => row.humidity !== null);
+                
+                document.getElementById('current-temp').textContent = 
+                    latestTemp ? latestTemp.temperature.toFixed(1) : '--';
+                document.getElementById('current-humidity').textContent = 
+                    latestHumidity ? latestHumidity.humidity.toFixed(0) : '--';
+                
+                // Update last updated time
+                const mostRecent = this.data[0];
+                if (mostRecent) {
+                    const date = new Date(this.parseTimestamp(mostRecent.timestamp));
+                    document.getElementById('last-updated').textContent = 
+                        date.toLocaleString();
+                }
+            }
+
+            updateTable() {
+                const tbody = document.getElementById('table-body');
+                const last30 = this.data.slice(0, 30);
+                
+                tbody.innerHTML = '';
+                
+                if (last30.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3" class="loading">No data available</td></tr>';
+                    return;
+                }
+                
+                last30.forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${row.timestamp}</td>
+                        <td>${row.temperature !== null ? row.temperature.toFixed(1) : '--'}</td>
+                        <td>${row.humidity !== null ? row.humidity.toFixed(0) : '--'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            setupCharts() {
+                const tempCtx = document.getElementById('tempChart').getContext('2d');
+                const humidityCtx = document.getElementById('humidityChart').getContext('2d');
+                
+                const chartOptions = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Time'
+                            }
+                        },
+                        y: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Value'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                };
+                
+                this.tempChart = new Chart(tempCtx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Temperature (°C)',
+                            data: [],
+                            borderColor: '#f5576c',
+                            backgroundColor: 'rgba(245, 87, 108, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: chartOptions
+                });
+                
+                this.humidityChart = new Chart(humidityCtx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Humidity (%)',
+                            data: [],
+                            borderColor: '#4facfe',
+                            backgroundColor: 'rgba(79, 172, 254, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: chartOptions
+                });
+            }
+
+            updateCharts() {
+                const tempData = this.getValidData('temperature', 30);
+                const humidityData = this.getValidData('humidity', 30);
+                
+                // Update temperature chart
+                this.tempChart.data.labels = tempData.map(row => {
+                    const date = new Date(this.parseTimestamp(row.timestamp));
+                    return date.toLocaleTimeString();
+                });
+                this.tempChart.data.datasets[0].data = tempData.map(row => row.temperature);
+                this.tempChart.update();
+                
+                // Update humidity chart
+                this.humidityChart.data.labels = humidityData.map(row => {
+                    const date = new Date(this.parseTimestamp(row.timestamp));
+                    return date.toLocaleTimeString();
+                });
+                this.humidityChart.data.datasets[0].data = humidityData.map(row => row.humidity);
+                this.humidityChart.update();
+            }
+
+            updateStatus(isOnline) {
+                const statusElement = document.getElementById('status');
+                const statusText = statusElement.querySelector('span');
+                
+                if (isOnline) {
+                    statusElement.className = 'status online';
+                    statusText.textContent = 'Connected';
+                } else {
+                    statusElement.className = 'status offline';
+                    statusText.textContent = 'Connection Error';
+                }
+            }
+
+            showError(message) {
+                const errorElement = document.getElementById('error-message');
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+            }
+
+            hideError() {
+                const errorElement = document.getElementById('error-message');
+                errorElement.style.display = 'none';
+            }
         }
-      });
-    }
 
-    function updateCurrentDataTable(latest) {
-      document.getElementById('currentTemp').textContent = `${latest.temperature.toFixed(1)}°C`;
-      document.getElementById('currentHumidity').textContent = `${latest.humidity.toFixed(0)}%`;
-      
-      const formattedTime = formatTimestamp(latest.timestamp);
-      document.getElementById('tempTime').textContent = formattedTime;
-      document.getElementById('humidityTime').textContent = formattedTime;
-    }
-
-    function updateDataTable(data) {
-      const tableBody = document.getElementById('data-table-body');
-      tableBody.innerHTML = '';
-
-      const last30 = data.slice(0, 30);
-      
-      last30.forEach(row => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${formatTimestamp(row.timestamp)}</td>
-          <td>${row.temperature.toFixed(1)}°C</td>
-          <td>${row.humidity.toFixed(0)}%</td>
-        `;
-        tableBody.appendChild(tr);
-      });
-    }
-
-    async function loadData() {
-      try {
-        document.getElementById('loading').style.display = 'block';
-        document.getElementById('error').style.display = 'none';
-        document.getElementById('dashboard').style.display = 'none';
-
-        const response = await fetch(csvUrl);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const csvText = await response.text();
-        const sensorData = parseCSV(csvText);
-
-        if (sensorData.length === 0) {
-          throw new Error('No valid data found in CSV');
-        }
-
-        // Update current values
-        updateCurrentDataTable(sensorData[0]);
-        
-        // Update data table
-        updateDataTable(sensorData);
-
-        // Prepare chart data (last 30 readings in chronological order for charts)
-        const last30 = sensorData.slice(0, 30).reverse();
-        const labels = last30.map(item => {
-          const parts = item.timestamp.split(' ');
-          return parts[1]; // Just show time
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new IoTDashboard();
         });
-        const tempData = last30.map(item => item.temperature);
-        const humData = last30.map(item => item.humidity);
-
-        // Draw individual charts
-        drawChart("tempChart", "Temperature (°C)", tempData, labels, "#e74c3c", "Temperature (°C)");
-        drawChart("humidityChart", "Humidity (%)", humData, labels, "#3498db", "Humidity (%)");
-        
-        // Draw combined chart
-        drawCombinedChart(tempData, humData, labels);
-
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('dashboard').style.display = 'block';
-
-      } catch (error) {
-        console.error('Error loading data:', error);
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('error').style.display = 'block';
-        document.getElementById('error-message').textContent = error.message;
-      }
-    }
-
-    // Auto-refresh every 30 seconds
-    function startAutoRefresh() {
-      setInterval(loadData, 30000);
-    }
-
-    // Initialize dashboard
-    document.addEventListener('DOMContentLoaded', function() {
-      loadData();
-      startAutoRefresh();
-    });
-  </script>
+    </script>
 </body>
 </html>
 
