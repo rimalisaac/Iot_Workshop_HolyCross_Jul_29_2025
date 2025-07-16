@@ -1,63 +1,64 @@
-#include <Adafruit_MPU6050.h>
-#include <Adafruit_Sensor.h>
-#include <Wire.h>
+#include <mpu6050.h> // The working library you found
 
-// Create an MPU-6050 sensor object
-Adafruit_MPU6050 mpu;
+// I2C address of the MPU-6050.
+// 0x69 if AD0 pin is HIGH, 0x68 if AD0 pin is LOW or unconnected.
+#define MPU_ADDRESS 0x68 
 
-void setup(void) {
+// A structure to hold all sensor data in one place
+struct MPUData {
+  float dpsGX, dpsGY, dpsGZ;       // Gyroscope values in Degrees per Second
+  float gForceAX, gForceAY, gForceAZ; // Accelerometer values in G-Force
+};
+
+void setup() {
   Serial.begin(115200);
-
-  // Explicitly start the I2C bus on the correct pins for your wiring
-  // Format is Wire.begin(SDA_PIN, SCL_PIN)
-  Wire.begin(D2, D1);
-
-  // Initialize the MPU-6050 sensor
-  if (!mpu.begin()) {
-    Serial.println("Failed to find MPU6050 chip");
-    while (1) {
-      delay(10);
-    }
-  }
-  Serial.println("MPU6050 Found!");
-
-  // Set the measurement range for the accelerometer and gyroscope
-  mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
-  mpu.setGyroRange(MPU6050_RANGE_500_DEG);
-  mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
-  
-  delay(100);
+  wakeSensor(MPU_ADDRESS); // Wakes sensor from sleep mode using the library's function
+  Serial.println("MPU-6050 Data Reader Initialized.");
 }
 
 void loop() {
-  // Create sensor event objects to store the readings
-  sensors_event_t a, g, temp;
+  MPUData sensorData; // Create an instance of our data structure
+
+  // Read sensor data and populate the structure
+  getSensorReadings(sensorData);
   
-  // Get new sensor events with the latest readings
-  mpu.getEvent(&a, &g, &temp);
+  // Print the collected data in a formatted way
+  printReadings(sensorData);
 
-  // --- Print Accelerometer Data ---
-  Serial.print("Acceleration X: ");
-  Serial.print(a.acceleration.x);
-  Serial.print(" m/s^2 | ");
-  Serial.print("Y: ");
-  Serial.print(a.acceleration.y);
-  Serial.print(" m/s^2 | ");
-  Serial.print("Z: ");
-  Serial.print(a.acceleration.z);
-  Serial.println(" m/s^2");
+  delay(500); // Wait half a second before the next reading
+}
 
-  // --- Print Gyroscope Data ---
-  Serial.print("Rotation X: ");
-  Serial.print(g.gyro.x);
-  Serial.print(" rad/s | ");
-  Serial.print("Y: ");
-  Serial.print(g.gyro.y);
-  Serial.print(" rad/s | ");
-  Serial.print("Z: ");
-  Serial.print(g.gyro.z);
-  Serial.println(" rad/s");
+/**
+ * @brief Reads all raw data from the MPU-6050 and converts it.
+ * @param &data A reference to the MPUData struct to be filled.
+ */
+void getSensorReadings(MPUData &data) {
+  // Temporary variables for raw sensor values
+  float rawGX, rawGY, rawGZ;
+  float rawAX, rawAY, rawAZ;
 
-  Serial.println("------------------------------------");
-  delay(500);
+  // Read raw data using the library's functions
+  readGyroData(MPU_ADDRESS, rawGX, rawGY, rawGZ);
+  readAccelData(MPU_ADDRESS, rawAX, rawAY, rawAZ);
+  
+  // Convert raw data to meaningful units and store in the struct
+  rawGyroToDPS(rawGX, rawGY, rawGZ, data.dpsGX, data.dpsGY, data.dpsGZ);
+  rawAccelToGForce(rawAX, rawAY, rawAZ, data.gForceAX, data.gForceAY, data.gForceAZ);
+}
+
+/**
+ * @brief Prints the sensor data to the Serial Monitor in a clean format.
+ * @param data The MPUData struct containing the values to print.
+ */
+void printReadings(const MPUData &data) {
+  Serial.print("Gyro (dps): ");
+  Serial.print("X= "); Serial.print(data.dpsGX);
+  Serial.print("\t| Y= "); Serial.print(data.dpsGY);
+  Serial.print("\t| Z= "); Serial.println(data.dpsGZ);
+
+  Serial.print("Accel (G):  ");
+  Serial.print("X= "); Serial.print(data.gForceAX);
+  Serial.print("\t| Y= "); Serial.print(data.gForceAY);
+  Serial.print("\t| Z= "); Serial.println(data.gForceAZ);
+  Serial.println("-----------------------------------------------------");
 }
