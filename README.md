@@ -4,7 +4,7 @@ https://thingspeak.mathworks.com/
 
 https://manus.im/invitation/M2QN3OI5CD8XM
 
-arduino.cc/en/software
+https://www.arduino.cc/en/software/
 
 https://cdn.sparkfun.com/assets/learn_tutorials/5/9/7/Windows-CH340-Driver.zip
 
