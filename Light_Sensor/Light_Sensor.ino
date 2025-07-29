@@ -6,7 +6,7 @@ void setup() {
   // This is for sending data from the NodeMCU to your computer's Serial Monitor
   Serial.begin(9600);
   
-  Serial.println("Experiment 2: LDR Light Sensor");
+  Serial.println("LDR Light Sensor");
   Serial.println("--------------------------------");
 }
 
