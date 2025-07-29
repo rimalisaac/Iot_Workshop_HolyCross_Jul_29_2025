@@ -18,7 +18,7 @@ DHT dht(DHTPIN, DHTTYPE);
 void setup() {
   // Start serial communication for debugging
   Serial.begin(9600);
-  Serial.println("Experiment 5: Temperature Alert System");
+  Serial.println("Temperature Alert System");
 
   // Set the buzzer pin as an output
   pinMode(BUZZER_PIN, OUTPUT);
