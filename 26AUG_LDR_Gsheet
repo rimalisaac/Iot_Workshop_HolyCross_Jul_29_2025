@@ -15,6 +15,8 @@ String GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/PASTE_YOUR_SCRIPT
 // LDR pin (D5 = GPIO14 on NodeMCU)
 const int LDR_D0 = D5;  
 
+WiFiClient client;   // <--- Needed for new http.begin()
+
 void setup() {
   Serial.begin(115200);
   pinMode(LDR_D0, INPUT);
@@ -43,18 +45,21 @@ void loop() {
     HTTPClient http;
     String url = GOOGLE_SCRIPT_URL + "?ldr=" + String(ldrDigital);
     
-    http.begin(url);
+    // FIXED: pass WiFiClient + URL
+    http.begin(client, url);
+    
     int httpCode = http.GET();
 
     if (httpCode > 0) {
       String payload = http.getString();
       Serial.println("Response: " + payload);
     } else {
-      Serial.println("Error sending data.");
+      Serial.print("Error sending data. Code: ");
+      Serial.println(httpCode);
     }
 
     http.end();
   }
 
-  delay(20000); // log every 20s (safe for Google Sheets)
+  delay(20000); // log every 20s
 }
