@@ -37,3 +37,19 @@ Save and Deploy > New deployment → Select Web app.
 Authorize
 
 Copy the Web App URL (looks like https://script.google.com/macros/s/.../exec).
+
+
+function doGet(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var temp = e.parameter.temp;
+  var hum = e.parameter.hum;
+  var timestamp = new Date();
+
+  if (temp && hum) {
+    sheet.appendRow([timestamp, temp, hum]);
+    return ContentService.createTextOutput("Data Stored Successfully");
+  } else {
+    return ContentService.createTextOutput("Missing Parameters");
+  }
+}
+
