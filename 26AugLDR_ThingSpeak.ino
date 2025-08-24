@@ -4,7 +4,7 @@
    LDR module D0 -> Digital pin
 ****************************************************/
 
-#include <WiFi.h>          // For ESP32. Use <ESP8266WiFi.h> if NodeMCU
+#include <ESP8266WiFi.h>         // For ESP32. Use <ESP8266WiFi.h> if NodeMCU
 #include "ThingSpeak.h"
 
 const char* ssid = "YOUR_WIFI_SSID";     
