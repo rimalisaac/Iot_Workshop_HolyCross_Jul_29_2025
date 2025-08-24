@@ -1,10 +1,6 @@
-/****************************************************
-   LDR Digital Output (D0) -> Google Sheets
-   Board: ESP8266 (NodeMCU)
-****************************************************/
-
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
+#include <WiFiClientSecure.h>
 
 const char* ssid = "YOUR_WIFI_SSID";     
 const char* password = "YOUR_WIFI_PASS"; 
@@ -12,10 +8,10 @@ const char* password = "YOUR_WIFI_PASS";
 // Replace with your Google Script Web App URL
 String GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/PASTE_YOUR_SCRIPT_URL/exec";
 
-// LDR pin (D5 = GPIO14 on NodeMCU)
+// LDR pin
 const int LDR_D0 = D5;  
 
-WiFiClient client;   // <--- Needed for new http.begin()
+WiFiClientSecure client;
 
 void setup() {
   Serial.begin(115200);
@@ -32,22 +28,23 @@ void setup() {
   Serial.println("\nWiFi connected.");
   Serial.print("IP Address: ");
   Serial.println(WiFi.localIP());
+
+  // Ignore SSL certificate validation
+  client.setInsecure();
 }
 
 void loop() {
   int ldrDigital = digitalRead(LDR_D0);
-
-  // Print to Serial Monitor
   Serial.print("LDR State: ");
   Serial.println(ldrDigital);
 
   if (WiFi.status() == WL_CONNECTED) {
     HTTPClient http;
     String url = GOOGLE_SCRIPT_URL + "?ldr=" + String(ldrDigital);
-    
-    // FIXED: pass WiFiClient + URL
+
+    http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
     http.begin(client, url);
-    
+
     int httpCode = http.GET();
 
     if (httpCode > 0) {
