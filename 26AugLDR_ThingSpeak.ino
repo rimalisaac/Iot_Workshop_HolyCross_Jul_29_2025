@@ -17,7 +17,7 @@ unsigned long myChannelNumber = YOUR_CHANNEL_ID;
 const char* myWriteAPIKey = "YOUR_API_KEY";
 
 // LDR digital pin
-const int LDR_D0 = 14;  // Example: GPIO14 (D5 on NodeMCU, change as needed)
+const int LDR_D0 = D5;  // Example: GPIO14 (D5 on NodeMCU, change as needed)
 
 // ThingSpeak update timing
 unsigned long lastUpdate = 0;
