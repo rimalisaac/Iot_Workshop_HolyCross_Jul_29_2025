@@ -1,7 +1,7 @@
 #include <ESP8266WiFi.h>
 #include "DHT.h"
 
-#define DHTPIN 4        // DHT11 data pin connected to GPIO4
+#define DHTPIN D4        // DHT11 data pin
 #define DHTTYPE DHT11   // Sensor type
 
 DHT dht(DHTPIN, DHTTYPE);
